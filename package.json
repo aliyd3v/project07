@@ -19,12 +19,18 @@
   "homepage": "https://github.com/aliyd3v/project07#readme",
   "description": "",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "pg": "^8.14.0"
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.14.0",
+    "rate-limiter-flexible": "^6.1.0",
+    "socket.io": "^4.8.1",
+    "winston": "^3.17.0"
   },
-  "type": "module",
   "devDependencies": {
     "nodemon": "^3.1.9"
-  }
+  },
+  "type": "module"
 }

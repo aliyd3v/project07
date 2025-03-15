@@ -15,3 +15,7 @@ export const postgresConfig = {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE
 }
+
+// JWT config
+export const jwtKey = process.env.JWT_KEY
+export const jwtExpiresIn = process.env.JWT_EXPIRES_IN
