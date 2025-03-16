@@ -14,13 +14,13 @@ router
 //User route.
 router
     .route('/user')
-    .post(userController.create)
+    .post(userController.createOne)
     .get(userController.getAll)
 router
-    .route('/id')
-    .get(userController.get)
-    .put(userController.update)
-    .delete(userController.delete)
+    .route('/user/:id')
+    .get(userController.getOne)
+    .put(userController.updateOne)
+    .delete(userController.deleteOne)
 
 //Category route.
 router
@@ -28,7 +28,7 @@ router
     .post(categoryController.create)
     .get(categoryController.getAll)
 router
-    .route('/category/id')
+    .route('/category/:id')
     .get(categoryController.get)
     .put(categoryController.update)
     .delete(categoryController.delete)
@@ -39,7 +39,7 @@ router
     .post(mealController.create)
     .get(mealController.getAll)
 router
-    .route('/meal/id')
+    .route('/meal/:id')
     .get(mealController.get)
     .put(mealController.update)
     .delete(mealController.delete)

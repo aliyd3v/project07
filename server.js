@@ -1,8 +1,8 @@
 import express from 'express'
 import router from './src/route/route.js'
 import cors from 'cors'
+import globalErrorHandler from './src/controller/error.js'
 import { port } from './src/config/config.js'
-import globalErrorHandler from './src/controller/errorController.js'
 
 // Setup app.
 const app = express()
