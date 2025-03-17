@@ -1,7 +1,8 @@
-import jwt from 'jsonwebtoken'
-import AppError from '../utils/appError.js'
-import { jwtKey, jwtExpiresIn } from '../config/config.js'
 import pg from '../database/postgresql.js'
+import AppError from '../utils/appError.js'
+import jwt from 'jsonwebtoken'
+import PassController from '../helper/scrypt.js'
+import { jwtKey, jwtExpiresIn } from '../config/config.js'
 import { loginSchema } from '../utils/validateSchemas.js'
 
 const authController = {
@@ -17,12 +18,21 @@ const authController = {
                     next
                 )
             }
-            const selectQuery = 'select * from users where username = $1 and password = $2;'
-            const values = [body.username, body.password]
+            const selectQuery = 'select id, name, username, role from users where username = $1;'
+            const values = [body.username]
             const user = pg.query(selectQuery, values)
             if (!user) {
                 return next(
-                    new AppError(401, 'fail', 'Email or password is wrong'),
+                    new AppError(401, 'fail', 'Username is wrong!'),
+                    req,
+                    res,
+                    next
+                )
+            }
+            const checked = PassController.check(body.password, user.password)
+            if (!checked) {
+                return next(
+                    new AppError(401, 'fail', 'Password is wrong!'),
                     req,
                     res,
                     next
@@ -33,7 +43,6 @@ const authController = {
                 role: user.role
             }
             const token = jwt.sign(payload, jwtKey, { expiresIn: jwtExpiresIn })
-            user.password = undefined
             res.status(200).json({
                 status: 'success',
                 token,
@@ -45,7 +54,7 @@ const authController = {
             next(error)
         }
     },
-    checkUser: async (req, res, next) => {
+    checkToken: async (req, res, next) => {
         try {
             let token
             if (

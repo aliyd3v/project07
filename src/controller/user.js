@@ -1,6 +1,7 @@
 import pg from '../database/postgresql.js'
+import PassController from '../helper/scrypt.js'
 import AppError from '../utils/appError.js'
-import { createUserSchema, updatePasswordSchema } from '../utils/validateSchemas.js'
+import { createUserSchema, updateUserSchema } from '../utils/validateSchemas.js'
 
 const userController = {
     createOne: async (req, res, next) => {
@@ -16,24 +17,34 @@ const userController = {
             }
 
             const condidat = await pg.query(
-                'SELECT * FROM users WHERE username = $1;', [body.username]
+                'SELECT id, username FROM users WHERE username = $1;', [body.username]
             )
             if (condidat.rowCount) {
                 return next(
-                    new AppError(400, 'fail', `Username '${body.username}' is already used!`),
+                    new AppError(
+                        400,
+                        'fail',
+                        `The chosen username '${body.username}' is already taken. Please try a different one.`
+                    ),
                     req,
                     res,
                     next)
             }
 
-            const insertQuery = 'INSERT INTO users(name, username, password, gender, role) VALUES($1, $2, $3, $4, $5);'
-            const values = [body.name, body.username, body.password, body.gender, body.role]
+            const password = await PassController.hash(body.password)
+            body.password = undefined
+
+            const insertQuery = `INSERT INTO 
+            users(name, username, password, gender, role) 
+            VALUES($1, $2, $3, $4, $5);`
+            const values = [body.name, body.username, password, body.gender, body.role]
             await pg.query(
                 insertQuery,
                 values
             )
             const newUser = await pg.query(
-                'select id, name, username, gender, role, points, created_at from users where username = $1',
+                `SELECT id, name, username, gender, role, points, created_at 
+                FROM users WHERE username = $1`,
                 [body.username]
             )
 
@@ -51,10 +62,19 @@ const userController = {
     getOne: async (req, res, next) => {
         const { params: { id } } = req
         try {
-            const selectQuery = `SELECT id, name, username, gender, role, points, created_at, updated_at 
+            const selectQuery = `SELECT 
+            id, name, username, gender, role, points, created_at, updated_at 
             FROM users WHERE id = $1 AND active = true;`
             const values = [id]
             const user = await pg.query(selectQuery, values)
+            if (!user.rowCount) {
+                return next(
+                    new AppError(404, 'fail', 'No document found with that id.'),
+                    req,
+                    res,
+                    next
+                )
+            }
             res.status(200).json({
                 status: 'success',
                 data: {
@@ -67,9 +87,16 @@ const userController = {
     },
     getAll: async (req, res) => {
         try {
-            const selectQuery = `SELECT id, name, username, gender, role, points, created_at, updated_at 
-            FROM users WHERE active = true;`
+            const selectQuery = `SELECT
+            id, name, username, gender, role, points, created_at, updated_at
+            FROM users WHERE active = true ORDER BY username ASC;`
             const users = await pg.query(selectQuery)
+            users.rows.map(el => {
+                const [m, d, y] = el.created_at.toLocaleDateString().split('/')
+                el.created_at = `${y}-${m < 10 ? `0${m}` : m}-${d < 10 ? `0${d}` : d}`
+                const [M, D, Y] = el.updated_at.toLocaleDateString().split('/')
+                el.updated_at = `${Y}-${M < 10 ? `0${M}` : M}-${D < 10 ? `0${D}` : D}`
+            })
             res.status(200).json({
                 status: 'success',
                 data: {
@@ -83,7 +110,7 @@ const userController = {
     updateOne: async (req, res, next) => {
         const { params: { id }, body } = req
         try {
-            const validationResult = updatePasswordSchema.validate(body)
+            const validationResult = updateUserSchema.validate(body)
             if (validationResult.error) {
                 return next(
                     new AppError(400, 'failed', validationResult.error.message),
@@ -91,7 +118,7 @@ const userController = {
                     res,
                     next)
             }
-            const selectQuery = `SELECT * FROM users WHERE id = $1 AND active = true;`
+            const selectQuery = `SELECT id, username FROM users WHERE id = $1 AND active = true;`
             const selectValues = [id]
             const user = await pg.query(selectQuery, selectValues)
             if (!user.rowCount) {
@@ -102,12 +129,45 @@ const userController = {
                     next
                 )
             }
-            const updateQuery = `UPDATE users
-            SET name = $1, username = $2, gender = $3, role = $4, updated_at = CURRENT_TIMESTAMP
-            WHERE id = $5 AND active = true;`
-            const updateValues = [body.name, body.username, body.gender, body.role, id]
+            const condidat = await pg.query(
+                'SELECT id, username FROM users WHERE username = $1',
+                [body.username]
+            )
+            if (condidat.rows[0].id != id) {
+                return next(
+                    new AppError(
+                        400,
+                        'fail',
+                        `The chosen username '${body.username}' is already taken. Please try a different one.`
+                    ),
+                    req,
+                    res,
+                    next
+                )
+            }
+            let updateQuery
+            let updateValues
+            if (user.username != body.username) {
+                updateQuery = `UPDATE users
+                SET name = $1, username = $2, gender = $3, role = $4, updated_at = CURRENT_DATE
+                WHERE id = $5 AND active = true;`
+                updateValues = [body.name, body.username, body.gender, body.role, id]
+            } else {
+                updateQuery = `UPDATE users
+                SET name = $1, gender = $2, role = $3, updated_at = CURRENT_DATE
+                WHERE id = $5 AND active = true;`
+                updateValues = [body.name, body.gender, body.role, id]
+            }
             await pg.query(updateQuery, updateValues)
-            const updatedUser = await qp.query('SELECT * FROM users WHERE id = $1;', [id])
+            const updatedUser = await pg.query(
+                `SELECT id, name, username, gender, role, points, created_at, updated_at 
+                FROM users WHERE id = $1;`,
+                [id]
+            )
+            const [m, d, y] = updatedUser.rows[0].created_at.toLocaleDateString().split('/')
+            updatedUser.rows[0].created_at = `${y}-${m < 10 ? `0${m}` : m}-${d < 10 ? `0${d}` : d}`
+            const [M, D, Y] = updatedUser.rows[0].updated_at.toLocaleDateString().split('/')
+            updatedUser.rows[0].updated_at = `${Y}-${M < 10 ? `0${M}` : M}-${D < 10 ? `0${D}` : D}`
             res.status(200).json({
                 status: 'success',
                 data: {
@@ -121,7 +181,19 @@ const userController = {
     deleteOne: async (req, res, next) => {
         const { params: { id } } = req
         try {
-            const updateQuery = 'UPDATE users SET active = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1;'
+            const user = await pg.query(`SELECT id, name FROM users
+                WHERE id = $1 AND active = true`, [id])
+            if (!user.rowCount) {
+                return next(
+                    new AppError(404, 'fail', 'No document found with that id.'),
+                    req,
+                    res,
+                    next
+                )
+            }
+            const updateQuery = `UPDATE users 
+            SET active = false, updated_at = CURRENT_DATE 
+            WHERE id = $1;`
             const values = [id]
             await pg.query(updateQuery, values)
             res.status(204).json({

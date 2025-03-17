@@ -19,3 +19,6 @@ export const postgresConfig = {
 // JWT config
 export const jwtKey = process.env.JWT_KEY
 export const jwtExpiresIn = process.env.JWT_EXPIRES_IN
+
+// Salt for crypto
+export const salt = process.env.SALT

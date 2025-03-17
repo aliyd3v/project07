@@ -32,7 +32,8 @@ export const createUserSchema = Joi.object({
         .required(),
 
     password: Joi.string()
-        .pattern(new RegExp('^[a-zA-Z0-9]{3,32}$'))
+        .pattern(new RegExp('^[a-zA-Z0-9]{5,32}$'))
+        .message('Password must be between 5 and 32 characters long and contain only letters and numbers.')
         .required(),
 
     gender: Joi.string()
@@ -73,5 +74,24 @@ export const updateUserSchema = Joi.object({
 export const updatePasswordSchema = Joi.object({
     password: Joi.string()
         .pattern(new RegExp('^[a-zA-Z0-9]{3,32}$'))
+        .message('Password must be between 5 and 32 characters long and contain only letters and numbers.')
+        .required()
+})
+
+export const createCategorySchema = Joi.object({
+    name: Joi.string()
+        .min(2)
+        .message('Name must be min 2 charakters!')
+        .max(128)
+        .message('Name must be max 128 charakters!')
+        .required()
+})
+
+export const updateCategorySchema = Joi.object({
+    name: Joi.string()
+        .min(2)
+        .message('Name must be min 2 charakters!')
+        .max(128)
+        .message('Name must be max 128 charakters!')
         .required()
 })
