@@ -6,22 +6,22 @@ import { jwtKey, jwtExpiresIn } from '../config/config.js'
 import { loginSchema } from '../utils/validateSchemas.js'
 
 const authController = {
-    login: (req, res, next) => {
+    login: async (req, res, next) => {
         const { body } = req
         try {
             const validationResult = loginSchema.validate(body)
             if (validationResult.error) {
                 return next(
-                    new AppError(400, 'fail', validationResult.error),
+                    new AppError(400, 'fail', validationResult.error.message),
                     req,
                     res,
                     next
                 )
             }
-            const selectQuery = 'select id, name, username, role from users where username = $1;'
+            const selectQuery = 'select id, name, username, role, password from users where username = $1;'
             const values = [body.username]
-            const user = pg.query(selectQuery, values)
-            if (!user) {
+            const user = await pg.query(selectQuery, values)
+            if (!user.rowCount) {
                 return next(
                     new AppError(401, 'fail', 'Username is wrong!'),
                     req,
@@ -29,7 +29,7 @@ const authController = {
                     next
                 )
             }
-            const checked = PassController.check(body.password, user.password)
+            const checked = await PassController.check(body.password, user.rows[0].password)
             if (!checked) {
                 return next(
                     new AppError(401, 'fail', 'Password is wrong!'),
@@ -38,16 +38,17 @@ const authController = {
                     next
                 )
             }
+            delete user.rows[0].password
             const payload = {
-                id: user.id,
-                role: user.role
+                id: user.rows[0].id,
+                role: user.rows[0].role
             }
             const token = jwt.sign(payload, jwtKey, { expiresIn: jwtExpiresIn })
             res.status(200).json({
                 status: 'success',
                 token,
                 data: {
-                    user
+                    user: user.rows[0]
                 }
             })
         } catch (error) {
@@ -76,7 +77,7 @@ const authController = {
             const selectQuery = 'select * from users where id = $1;'
             const values = [decode.id]
             const user = await pg.query(selectQuery, values)
-            if (!user) {
+            if (!user.rowCount) {
                 return next(
                     new AppError(404, 'fail', 'This user is no longer exist.'),
                     req,

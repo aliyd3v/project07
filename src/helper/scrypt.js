@@ -8,7 +8,7 @@ const PassController = {
         return `${hashBuffer.toString('hex')}`
     },
     check: async (string, hash) => {
-        return await this.scryptHash(string, salt) === hash
+        return await PassController.hash(string, salt) === hash
     }
 }
 

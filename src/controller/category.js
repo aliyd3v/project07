@@ -3,7 +3,7 @@ import AppError from "../utils/appError.js"
 import { createCategorySchema, updateCategorySchema } from "../utils/validateSchemas.js"
 
 const categoryController = {
-    create: async (req, res, next) => {
+    createOne: async (req, res, next) => {
         const { name } = req.body
         try {
             const validationResult = createCategorySchema.validate({ name })
@@ -34,7 +34,7 @@ const categoryController = {
             const insertQuery = `INSERT INTO categories(name) VALUES($1)`
             const values = [name]
             await pg.query(insertQuery, values)
-            const category = await pg.query(`SELECT id, name FROM categories WHERE name = $1;`, [name])
+            const category = await pg.query(`SELECT id, name, created_at, updated_ad FROM categories WHERE name = $1;`, [name])
             res.status(201).json({
                 status: 'success',
                 data: {
@@ -45,10 +45,10 @@ const categoryController = {
             next(error)
         }
     },
-    get: async (req, res, next) => {
+    getOne: async (req, res, next) => {
         const { params: { id } } = req
         try {
-            const selectQuery = `SELECT id, name FROM categories WHERE id = $1 AND active = true;`
+            const selectQuery = `SELECT id, name, created_at, updated_ad FROM categories WHERE id = $1 AND active = true;`
             const values = [id]
             const category = await pg.query(selectQuery, values)
             if (!category.rowCount) {
@@ -72,7 +72,7 @@ const categoryController = {
     getAll: async (req, res, next) => {
         try {
             const categories = await pg.query(
-                `SELECT id, name FROM categories WHERE active = true ORDER BY name ASC;`
+                `SELECT id, name, created_at, updated_ad FROM categories WHERE active = true ORDER BY name ASC;`
             )
             res.status(200).json({
                 status: 'success',
@@ -84,7 +84,35 @@ const categoryController = {
             next(error)
         }
     },
-    update: async (req, res, next) => {
+    getCategoriesWithMeals: async (req, res, next) => {
+        try {
+            const selectQuery = `SELECT 
+            c.id AS category_id, 
+            c.name AS category_name, 
+            COALESCE(JSON_AGG(
+                JSON_BUILD_OBJECT(
+                    'id', m.id, 
+                    'name', m.name, 
+                    'price', m.price
+                )
+            ) FILTER (WHERE m.id IS NOT NULL), '[]') AS meals
+            FROM categories c
+            LEFT JOIN meals m ON c.id = m.category_id
+            WHERE c.active = true
+            GROUP BY c.id, c.name
+            ORDER BY c.name;`
+            const categories = await pg.query(selectQuery)
+            res.status(200).json({
+                status: 'success',
+                data: {
+                    categories: categories.rows
+                }
+            })
+        } catch (error) {
+            next(error)
+        }
+    },
+    updateOne: async (req, res, next) => {
         const { params: { id }, body } = req
         try {
             const validationResult = updateCategorySchema.validate(body)
@@ -126,12 +154,12 @@ const categoryController = {
             }
             await pg.query(
                 `UPDATE categories
-                SET name = $1, updated_at = CURRENT_DATE
+                SET name = $1, updated_at = CURRENT_TIMESTAMP
                 WHERE id = $2 AND active = true;`,
                 [body.name, id]
             )
             const updatedCategory = await pg.query(
-                `SELECT id, name FROM categories WHERE id = $1;`,
+                `SELECT id, name, created_at, updated_ad FROM categories WHERE id = $1;`,
                 [id]
             )
             res.status(201).json({
@@ -144,7 +172,7 @@ const categoryController = {
             next(error)
         }
     },
-    delete: async (req, res, next) => {
+    deleteOne: async (req, res, next) => {
         const { params: { id } } = req
         try {
             const category = await pg.query(`SELECT id, name FROM categories
@@ -158,7 +186,7 @@ const categoryController = {
                 )
             }
             const updateQuery = `UPDATE categories
-            SET active = false, updated_at = CURRENT_DATE
+            SET active = false, updated_at = CURRENT_TIMESTAMP
             WHERE id = $1`
             const values = [id]
             await pg.query(updateQuery, values)

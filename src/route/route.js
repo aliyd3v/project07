@@ -25,24 +25,29 @@ router
 //Category route.
 router
     .route('/category')
-    .post(categoryController.create)
+    .post(categoryController.createOne)
     .get(categoryController.getAll)
 router
     .route('/category/:id')
-    .get(categoryController.get)
-    .put(categoryController.update)
-    .delete(categoryController.delete)
+    .get(categoryController.getOne)
+    .put(categoryController.updateOne)
+    .delete(categoryController.deleteOne)
 
 // Meal route.
 router
     .route('/meal')
-    .post(mealController.create)
+    .post(mealController.createOne)
     .get(mealController.getAll)
 router
     .route('/meal/:id')
-    .get(mealController.get)
-    .put(mealController.update)
-    .delete(mealController.delete)
+    .get(mealController.getOne)
+    .put(mealController.updateOne)
+    .delete(mealController.deleteOne)
+
+// Category with meals.
+router
+    .route('/categories-with-meals')
+    .get(categoryController.getCategoriesWithMeals)
 
 // Handle not found route.
 router

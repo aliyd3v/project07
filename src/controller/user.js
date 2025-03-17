@@ -91,12 +91,6 @@ const userController = {
             id, name, username, gender, role, points, created_at, updated_at
             FROM users WHERE active = true ORDER BY username ASC;`
             const users = await pg.query(selectQuery)
-            users.rows.map(el => {
-                const [m, d, y] = el.created_at.toLocaleDateString().split('/')
-                el.created_at = `${y}-${m < 10 ? `0${m}` : m}-${d < 10 ? `0${d}` : d}`
-                const [M, D, Y] = el.updated_at.toLocaleDateString().split('/')
-                el.updated_at = `${Y}-${M < 10 ? `0${M}` : M}-${D < 10 ? `0${D}` : D}`
-            })
             res.status(200).json({
                 status: 'success',
                 data: {
@@ -149,12 +143,12 @@ const userController = {
             let updateValues
             if (user.username != body.username) {
                 updateQuery = `UPDATE users
-                SET name = $1, username = $2, gender = $3, role = $4, updated_at = CURRENT_DATE
+                SET name = $1, username = $2, gender = $3, role = $4, updated_at = CURRENT_TIMESTAMP
                 WHERE id = $5 AND active = true;`
                 updateValues = [body.name, body.username, body.gender, body.role, id]
             } else {
                 updateQuery = `UPDATE users
-                SET name = $1, gender = $2, role = $3, updated_at = CURRENT_DATE
+                SET name = $1, gender = $2, role = $3, updated_at = CURRENT_TIMESTAMP
                 WHERE id = $5 AND active = true;`
                 updateValues = [body.name, body.gender, body.role, id]
             }
@@ -164,10 +158,6 @@ const userController = {
                 FROM users WHERE id = $1;`,
                 [id]
             )
-            const [m, d, y] = updatedUser.rows[0].created_at.toLocaleDateString().split('/')
-            updatedUser.rows[0].created_at = `${y}-${m < 10 ? `0${m}` : m}-${d < 10 ? `0${d}` : d}`
-            const [M, D, Y] = updatedUser.rows[0].updated_at.toLocaleDateString().split('/')
-            updatedUser.rows[0].updated_at = `${Y}-${M < 10 ? `0${M}` : M}-${D < 10 ? `0${D}` : D}`
             res.status(200).json({
                 status: 'success',
                 data: {
@@ -192,7 +182,7 @@ const userController = {
                 )
             }
             const updateQuery = `UPDATE users 
-            SET active = false, updated_at = CURRENT_DATE 
+            SET active = false, updated_at = CURRENT_TIMESTAMP 
             WHERE id = $1;`
             const values = [id]
             await pg.query(updateQuery, values)

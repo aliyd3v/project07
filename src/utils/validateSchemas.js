@@ -7,7 +7,8 @@ export const loginSchema = Joi.object({
         .min(3)
         .message('Username must be min 3 charakters!')
         .max(32)
-        .message('Username must be max 64 charakters!'),
+        .message('Username must be max 64 charakters!')
+        .required(),
 
     password: Joi.string()
         .pattern(new RegExp('^[a-zA-Z0-9]{3,32}$'))
@@ -95,3 +96,33 @@ export const updateCategorySchema = Joi.object({
         .message('Name must be max 128 charakters!')
         .required()
 })
+
+export const createMealSchema = Joi.object({
+    name: Joi.string()
+        .min(2)
+        .message('Meal name must be min 2 charakters!')
+        .max(128)
+        .message('Meal name must be max 128 charakters!')
+        .required(),
+
+    price: Joi.number()
+        .required(),
+
+    category_id: Joi.number()
+        .required()
+})
+
+// export const updateMealSchema = Joi.object({
+//     name: Joi.string()
+//         .min(2)
+//         .message('Meal name must be min 2 charakters!')
+//         .max(128)
+//         .message('Meal name must be max 128 charakters!')
+//         .required(),
+
+//     price: Joi.number()
+//         .required(),
+
+//     category_id: Joi.number()
+//         .required()
+// })
