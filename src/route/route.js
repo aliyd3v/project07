@@ -4,6 +4,7 @@ import categoryController from '../controller/category.js'
 import mealController from '../controller/meal.js'
 import authController from '../controller/auth.js'
 import AppError from '../utils/appError.js'
+import tableController from "../controller/table.js"
 
 const router = express.Router()
 
@@ -48,6 +49,10 @@ router
 router
     .route('/categories-with-meals')
     .get(categoryController.getCategoriesWithMeals)
+
+router
+    .route('/table')
+    .post(tableController.createOne)
 
 // Handle not found route.
 router
