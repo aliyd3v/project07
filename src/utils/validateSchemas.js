@@ -11,7 +11,8 @@ export const loginSchema = Joi.object({
         .required(),
 
     password: Joi.string()
-        .pattern(new RegExp('^[a-zA-Z0-9]{3,32}$'))
+        .pattern(new RegExp('^[a-zA-Z0-9]{5,32}$'))
+        .message('Password must be between 5 and 32 characters long and contain only letters and numbers.')
         .required()
 })
 
@@ -106,9 +107,15 @@ export const createMealSchema = Joi.object({
         .required(),
 
     price: Joi.number()
+        .integer()
+        .min(1)
+        .message('Price cannot be less from 1!')
         .required(),
 
     category_id: Joi.number()
+        .integer()
+        .min(1)
+        .message('Category id cannot be less from 1!')
         .required()
 })
 
@@ -121,8 +128,53 @@ export const createMealSchema = Joi.object({
 //         .required(),
 
 //     price: Joi.number()
+//         .integer()
 //         .required(),
 
 //     category_id: Joi.number()
+//         .integer()
 //         .required()
 // })
+
+export const createTableSchema = Joi.object({
+    number: Joi.number()
+        .integer()
+        .min(1)
+        .message('Table number cannot be less from 1!')
+        .required()
+})
+
+const orderItemsSchema = Joi.object({
+    mealId: Joi.number()
+        .integer()
+        .min(1)
+        .required(),
+
+    quantity: Joi.number()
+        .integer()
+        .min(1)
+        .required()
+})
+
+export const createOrderSchema = Joi.object({
+    table_id: Joi.number()
+        .integer()
+        .min(1)
+        .message('Table id cannot be less from 1!')
+        .required(),
+
+    status: Joi.string()
+        .valid('Pending', 'Preparing', 'Prepared', 'Canceled')
+        .required(),
+
+    service_staff_id: Joi.number()
+        .integer()
+        .min(1)
+        .message('Service staff id cannot be less from 1!')
+        .required(),
+
+    meals: Joi.array()
+        .items(orderItemsSchema)
+        .min(1)
+        .required()
+})

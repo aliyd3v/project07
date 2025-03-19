@@ -18,7 +18,7 @@ const authController = {
                     next
                 )
             }
-            const selectQuery = 'select id, name, username, role, password from users where username = $1;'
+            const selectQuery = 'SELECT id, name, username, role, password FROM users WHERE username = $1;'
             const values = [body.username]
             const user = await pg.query(selectQuery, values)
             if (!user.rowCount) {

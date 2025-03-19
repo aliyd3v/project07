@@ -31,10 +31,11 @@ const categoryController = {
                     next
                 )
             }
-            const insertQuery = `INSERT INTO categories(name) VALUES($1)`
+            const insertQuery = `INSERT INTO categories(name)
+            VALUES($1)
+            RETURNING id, name, created_at`
             const values = [name]
-            await pg.query(insertQuery, values)
-            const category = await pg.query(`SELECT id, name, created_at, updated_ad FROM categories WHERE name = $1;`, [name])
+            const category = await pg.query(insertQuery, values)
             res.status(201).json({
                 status: 'success',
                 data: {
@@ -152,15 +153,12 @@ const categoryController = {
                     next
                 )
             }
-            await pg.query(
+            const updatedCategory = await pg.query(
                 `UPDATE categories
                 SET name = $1, updated_at = CURRENT_TIMESTAMP
-                WHERE id = $2 AND active = true;`,
+                WHERE id = $2 AND active = true
+                RETURNING id, name, created_at, updated_ad;`,
                 [body.name, id]
-            )
-            const updatedCategory = await pg.query(
-                `SELECT id, name, created_at, updated_ad FROM categories WHERE id = $1;`,
-                [id]
             )
             res.status(201).json({
                 status: 'success',

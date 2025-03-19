@@ -5,6 +5,7 @@ import mealController from '../controller/meal.js'
 import authController from '../controller/auth.js'
 import AppError from '../utils/appError.js'
 import tableController from "../controller/table.js"
+import orderController from "../controller/order.js"
 
 const router = express.Router()
 
@@ -53,6 +54,14 @@ router
 router
     .route('/table')
     .post(tableController.createOne)
+    .get(tableController.getAll)
+
+router
+    .route('/order')
+    .post(orderController.createOne)
+router
+    .route('/order/:id')
+    .get(orderController.getOne)
 
 // Handle not found route.
 router

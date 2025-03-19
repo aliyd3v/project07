@@ -47,18 +47,15 @@ const mealController = {
                     next
                 )
             }
-            const insertQuery = `INSERT INTO meals (name, price, category_id) VALUES($1, $2, $3);`
-            const values = [body.name, body.price, body.category_id]
-            await pg.query(insertQuery, values)
-            const meal = await pg.query(
-                `SELECT meals.id, meals.name, meals.price,
+            const insertQuery = `INSERT INTO meals (name, price, category_id) VALUES($1, $2, $3)
+            RETURNING meals.id, meals.name, meals.price,
                 categories.name AS category_name,
                 meals.created_at
                 FROM meals
                 JOIN categories ON meals.category_id = categories.id
-                WHERE name = $1`,
-                [body.name]
-            )
+                WHERE name = $1;`
+            const values = [body.name, body.price, body.category_id]
+            const meal = await pg.query(insertQuery, values)
             res.status(201).json({
                 status: 'success',
                 data: {
