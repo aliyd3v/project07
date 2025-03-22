@@ -1,11 +1,16 @@
 import { createMealSchema, updateMealSchema } from "../utils/validateSchemas.js"
 import AppError from '../utils/appError.js'
 import pg from '../database/postgresql.js'
+import storage from "../helper/storage.js"
+import fs from 'node:fs'
 
 const mealController = {
     createOne: async (req, res, next) => {
         const { body } = req
         try {
+            console.log(req.file)
+            const filePath = req.file.path
+            const fileName = req.file.filename
             const validateResult = createMealSchema.validate(body)
             if (validateResult.error) {
                 return next(
@@ -47,6 +52,14 @@ const mealController = {
                     next
                 )
             }
+
+
+            // storage
+
+
+            // storage.getUrl
+
+
             const insertQuery = `INSERT INTO meals (name, price, category_id, active)
 VALUES($1, $2, $3, $4)
 RETURNING id, name, price,
@@ -135,6 +148,14 @@ active, created_at;`
                     next
                 )
             }
+
+
+            // storage.upload
+
+
+            // storage.getUrl
+
+
             const updateQuery = `UPDATE meals
 SET name = $1, price = $2, category_id = $3, active = $4, updated_at = CURRENT_TIMESTAMP
 WHERE id = $5
@@ -159,7 +180,7 @@ active, created_at, updated_at;`
         const { params: { id } } = req
         try {
             const meal = await pg.query(
-                `SELECT id FROM meals WHERE id = $1;`, 
+                `SELECT id FROM meals WHERE id = $1;`,
                 [id]
             )
             if (!meal.rowCount) {

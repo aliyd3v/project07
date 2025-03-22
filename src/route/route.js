@@ -6,6 +6,7 @@ import authController from '../controller/auth.js'
 import AppError from '../utils/appError.js'
 import tableController from "../controller/table.js"
 import orderController from "../controller/order.js"
+import upload from "../helper/multer.js"
 
 const router = express.Router()
 
@@ -39,12 +40,12 @@ router
 // Meal route.
 router
     .route('/meal')
-    .post(mealController.createOne)
+    .post(upload.single('image'), mealController.createOne)
     .get(mealController.getAll)
 router
     .route('/meal/:id')
     .get(mealController.getOne)
-    .put(mealController.updateOne)
+    .put(upload.single('image'), mealController.updateOne)
     .delete(mealController.deleteOne)
     .put(mealController.changeActive)
 
