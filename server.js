@@ -1,6 +1,6 @@
 import http from 'http'
 import app from './app.js'
-import { port } from './src/config/config.js'
+import { host, port } from './src/config/config.js'
 import { Server } from 'socket.io'
 import ioRouter from './src/route/ioRoute.js'
 
@@ -20,4 +20,4 @@ io.on('connection', (socket) => {
 })
 
 // Setup server port.
-server.listen(port, () => console.log(`Server running on port ${port}`))
+server.listen(port, host, () => console.log(`Server running on port ${port}`))

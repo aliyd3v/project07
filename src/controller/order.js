@@ -128,7 +128,8 @@ GROUP BY o.id, t.id, t.number, u.id, u.name, u.username, u.role, u.gender;`
         const { params: { id } } = req
         try {
             const selectQuery = `SELECT 
-o.id AS order_id,
+o.id AS id,
+o.status AS status,
 json_build_object(
     'id', t.id,
     'number', t.number
@@ -155,7 +156,9 @@ COALESCE(
             )
         )
     ) FILTER (WHERE oi.id IS NOT NULL), '[]'
-) AS order_items
+) AS order_items,
+o.created_at AS created_at,
+o.updated_at AS updated_at
 FROM orders o
 LEFT JOIN tables t ON o.table_id = t.id
 LEFT JOIN users u ON o.service_staff_id = u.id
@@ -163,7 +166,8 @@ LEFT JOIN order_items oi ON oi.order_id = o.id
 LEFT JOIN meals m ON oi.meal_id = m.id
 LEFT JOIN categories c ON m.category_id = c.id
 WHERE o.id = $1
-GROUP BY o.id, t.id, t.number, u.id, u.name, u.username, u.role, u.gender;`
+GROUP BY o.id, t.id, t.number, u.id, u.name, u.username, u.role, u.gender 
+ORDER BY o.created_at;`
             const values = [id]
             const order = await pg.query(selectQuery, values)
             if (!order.rowCount) {

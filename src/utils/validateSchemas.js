@@ -86,6 +86,9 @@ export const createCategorySchema = Joi.object({
         .message('Name must be min 2 charakters!')
         .max(128)
         .message('Name must be max 128 charakters!')
+        .required(),
+
+    active: Joi.boolean()
         .required()
 })
 
@@ -95,6 +98,9 @@ export const updateCategorySchema = Joi.object({
         .message('Name must be min 2 charakters!')
         .max(128)
         .message('Name must be max 128 charakters!')
+        .required(),
+
+    active: Joi.boolean()
         .required()
 })
 
@@ -116,25 +122,35 @@ export const createMealSchema = Joi.object({
         .integer()
         .min(1)
         .message('Category id cannot be less from 1!')
+        .required(),
+
+    active: Joi.boolean()
         .required()
 })
 
-// export const updateMealSchema = Joi.object({
-//     name: Joi.string()
-//         .min(2)
-//         .message('Meal name must be min 2 charakters!')
-//         .max(128)
-//         .message('Meal name must be max 128 charakters!')
-//         .required(),
+export const updateMealSchema = Joi.object({
+    name: Joi.string()
+        .min(2)
+        .message('Meal name must be min 2 charakters!')
+        .max(128)
+        .message('Meal name must be max 128 charakters!')
+        .required(),
 
-//     price: Joi.number()
-//         .integer()
-//         .required(),
+    price: Joi.number()
+        .integer()
+        .min(1)
+        .message('Price cannot be less from 1!')
+        .required(),
 
-//     category_id: Joi.number()
-//         .integer()
-//         .required()
-// })
+    category_id: Joi.number()
+        .integer()
+        .min(1)
+        .message('Category id cannot be less from 1!')
+        .required(),
+
+    active: Joi.boolean()
+        .required()
+})
 
 export const createTableSchema = Joi.object({
     number: Joi.number()

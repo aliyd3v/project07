@@ -34,6 +34,7 @@ router
     .get(categoryController.getOne)
     .put(categoryController.updateOne)
     .delete(categoryController.deleteOne)
+    .put(categoryController.changeActive)
 
 // Meal route.
 router
@@ -45,17 +46,20 @@ router
     .get(mealController.getOne)
     .put(mealController.updateOne)
     .delete(mealController.deleteOne)
+    .put(mealController.changeActive)
 
 // Category with meals.
 router
     .route('/categories-with-meals')
     .get(categoryController.getCategoriesWithMeals)
 
+// Table route.
 router
     .route('/table')
     .post(tableController.createOne)
     .get(tableController.getAll)
 
+// Order route.
 router
     .route('/order')
     .post(orderController.createOne)

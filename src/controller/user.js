@@ -34,9 +34,9 @@ const userController = {
             body.password = undefined
 
             const insertQuery = `INSERT INTO 
-            users(name, username, password, gender, role) 
-            VALUES($1, $2, $3, $4, $5)
-            RETURNS id, name, username, gender, role, points, created_at;`
+users(name, username, password, gender, role) 
+VALUES($1, $2, $3, $4, $5)
+RETURNING id, name, username, gender, role, points, created_at;`
             const values = [body.name, body.username, password, body.gender, body.role]
             const user = await pg.query(
                 insertQuery,
@@ -136,15 +136,15 @@ const userController = {
             let updateValues
             if (user.username != body.username) {
                 updateQuery = `UPDATE users
-                SET name = $1, username = $2, gender = $3, role = $4, updated_at = CURRENT_TIMESTAMP
-                WHERE id = $5 AND active = true
-                RETURNS id, name, username, gender, role, points, created_at, updated_at;`
+SET name = $1, username = $2, gender = $3, role = $4, updated_at = CURRENT_TIMESTAMP
+WHERE id = $5 AND active = true
+RETURNING id, name, username, gender, role, points, created_at, updated_at;`
                 updateValues = [body.name, body.username, body.gender, body.role, id]
             } else {
                 updateQuery = `UPDATE users
-                SET name = $1, gender = $2, role = $3, updated_at = CURRENT_TIMESTAMP
-                WHERE id = $5 AND active = true
-                RETURNS id, name, username, gender, role, points, created_at, updated_at;`
+SET name = $1, gender = $2, role = $3, updated_at = CURRENT_TIMESTAMP
+WHERE id = $5 AND active = true
+RETURNING id, name, username, gender, role, points, created_at, updated_at;`
                 updateValues = [body.name, body.gender, body.role, id]
             }
             const updatedUser = await pg.query(updateQuery, updateValues)
@@ -171,9 +171,9 @@ const userController = {
                     next
                 )
             }
-            const updateQuery = `UPDATE users 
-            SET active = false, updated_at = CURRENT_TIMESTAMP 
-            WHERE id = $1;`
+            const updateQuery = `UPDATE users
+SET active = false, updated_at = CURRENT_TIMESTAMP
+WHERE id = $1;`
             const values = [id]
             await pg.query(updateQuery, values)
             res.status(204).json({

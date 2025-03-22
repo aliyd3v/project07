@@ -1,4 +1,4 @@
-import { createMealSchema } from "../utils/validateSchemas.js"
+import { createMealSchema, updateMealSchema } from "../utils/validateSchemas.js"
 import AppError from '../utils/appError.js'
 import pg from '../database/postgresql.js'
 
@@ -32,7 +32,7 @@ const mealController = {
                 )
             }
             const category = await pg.query(
-                `SELECT id, name FROM categories WHERE id = $1 AND active = true;`,
+                `SELECT id, name FROM categories WHERE id = $1;`,
                 [body.category_id]
             )
             if (!category.rowCount) {
@@ -47,14 +47,14 @@ const mealController = {
                     next
                 )
             }
-            const insertQuery = `INSERT INTO meals (name, price, category_id) VALUES($1, $2, $3)
-            RETURNING meals.id, meals.name, meals.price,
-                categories.name AS category_name,
-                meals.created_at
-                FROM meals
-                JOIN categories ON meals.category_id = categories.id
-                WHERE name = $1;`
-            const values = [body.name, body.price, body.category_id]
+            const insertQuery = `INSERT INTO meals (name, price, category_id, active)
+VALUES($1, $2, $3, $4)
+RETURNING id, name, price,
+JSON_BUILD_OBJECT(
+'id', category_id,
+'name', (SELECT name FROM categories WHERE id = category_id)) AS category,
+active, created_at;`
+            const values = [body.name, body.price, body.category_id, body.active]
             const meal = await pg.query(insertQuery, values)
             res.status(201).json({
                 status: 'success',
@@ -114,8 +114,105 @@ const mealController = {
             next(error)
         }
     },
-    updateOne: async (req, res, next) => { },
-    deleteOne: async (req, res, next) => { }
+    updateOne: async (req, res, next) => {
+        const { params: { id }, body } = req
+        try {
+            const validationResult = updateMealSchema.validate(body)
+            if (validationResult.error) {
+                return next(
+                    new AppError(404, 'fail', validationResult.error.message),
+                    req,
+                    res,
+                    next
+                )
+            }
+            const meal = await pg.query(`SELECT id FROM meals WHERE id = $1;`, [id])
+            if (!meal.rowCount) {
+                return next(
+                    new AppError(404, 'fail', 'No document found with that id.'),
+                    req,
+                    res,
+                    next
+                )
+            }
+            const updateQuery = `UPDATE meals
+SET name = $1, price = $2, category_id = $3, active = $4, updated_at = CURRENT_TIMESTAMP
+WHERE id = $5
+RETURNING id, name, price,
+JSON_BUILD_OBJECT(
+'id', category_id,
+'name', (SELECT name FROM categories WHERE id = category_id)) AS category,
+active, created_at, updated_at;`
+            const values = [body.name, body.price, body.category_id, body.active, id]
+            const updatedMeal = await pg.query(updateQuery, values)
+            res.status(200).json({
+                status: 'success',
+                data: {
+                    meal: updatedMeal.rows[0]
+                }
+            })
+        } catch (error) {
+            next(error)
+        }
+    },
+    deleteOne: async (req, res, next) => {
+        const { params: { id } } = req
+        try {
+            const meal = await pg.query(
+                `SELECT id FROM meals WHERE id = $1;`, 
+                [id]
+            )
+            if (!meal.rowCount) {
+                return next(
+                    new AppError(404, 'fail', 'No document found with that id.'),
+                    req,
+                    res,
+                    next
+                )
+            }
+            const deleteQuery = `DELETE meals WHERE id = $1;`
+            const values = [id]
+            await pg.query(deleteQuery, values)
+            res.status(204).json({
+                status: 'success',
+                data: null
+            })
+        } catch (error) {
+            next(error)
+        }
+    },
+    changeActive: async (req, res, next) => {
+        const { params: { id } } = req
+        try {
+            const meal = await pg.query(`SELECT id FROM meals WHERE id = $1;`, [id])
+            if (!meal.rowCount) {
+                return next(
+                    new AppError(404, 'fail', 'No document found with that id.'),
+                    req,
+                    res,
+                    next
+                )
+            }
+            const updateQuery = `UPDATE meals
+SET active = $1, updated_at = CURRENT_TIMESTAMP
+WHERE id = $2
+RETURNING id, name, price,
+JSON_BUILD_OBJECT(
+'id', category_id,
+'name', (SELECT name FROM categories WHERE id = category_id)) AS category,
+active, created_at, updated_at;`
+            const values = [meal.active === true ? false : true, id]
+            const updatedMeal = await pg.query(updateQuery, values)
+            res.status(200).json({
+                status: 'success',
+                data: {
+                    meal: updatedMeal.rows[0]
+                }
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
 }
 
 export default mealController

@@ -1,13 +1,7 @@
 const router = {
-    global: (socket, next) => {
-        next()
-    },
-    newOrder: ('new-order', (socket) => {
-
-    }),
-    prepared: ('prepared', (socket) => {
-
-    })
+    global: (socket, next) => { },
+    newOrder: ('new-order', (socket) => { }),
+    prepared: ('prepared', (socket) => { })
 }
 
 export default router

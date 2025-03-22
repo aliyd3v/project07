@@ -16,8 +16,7 @@ const tableController = {
                 )
             }
             const condidat = await pg.query(
-                `SELECT id, number FROM tables
-                WHERE number = $1;`,
+                `SELECT id, number FROM tables WHERE number = $1;`,
                 [body.number]
             )
             if (condidat.rowCount) {
@@ -33,8 +32,8 @@ const tableController = {
                 )
             }
             const insertQuery = `INSERT INTO tables (number)
-            VALUES ($1)
-            RETURNING id, number, active, created_at;`
+VALUES ($1)
+RETURNING id, number, active, created_at;`
             const values = [body.number]
             const table = await pg.query(insertQuery, values)
             res.status(201).json({
@@ -50,7 +49,7 @@ const tableController = {
     getAll: async (req, res, next) => {
         try {
             const selectQuery = `SELECT id, number, active, created_at, updated_at
-            FROM tables;`
+FROM tables;`
             const tables = await pg.query(selectQuery)
             res.status(200).json({
                 status: 'success',
