@@ -89,7 +89,7 @@ RETURNING id, name, price,
 JSON_BUILD_OBJECT(
 'id', category_id, 
 'name', (SELECT name FROM categories WHERE id = category_id)) AS category,
-active, image_url, image_name, created_at;`
+active, image_url, created_at;`
                 : `INSERT INTO meals
 (name, price, category_id, active, image_url, image_name)
 VALUES($1, $2, $3, $4)
@@ -97,7 +97,7 @@ RETURNING id, name, price,
 JSON_BUILD_OBJECT(
 'id', category_id, 
 'name', (SELECT name FROM categories WHERE id = category_id)) AS category,
-active, image_url, image_name, created_at;`
+active, image_url, created_at;`
             const values = req.file ? [
                 body.name,
                 body.price,
@@ -127,7 +127,7 @@ active, image_url, image_name, created_at;`
         const { params: { id } } = req
         try {
             const meal = await pg.query(
-                `SELECT meals.id, meals.name, meals.price,
+                `SELECT meals.id, meals.name, meals.price, meals.image_url,
                 categories.name AS category_name,
                 meals.created_at, meals.updated_at
                 FROM meals
@@ -156,7 +156,8 @@ active, image_url, image_name, created_at;`
     getAll: async (req, res, next) => {
         try {
             const meals = await pg.query(
-                `SELECT meals.id, meals.name, meals.price, categories.name AS category_name, meals.created_at, meals.updated_at
+                `SELECT meals.id, meals.name, meals.price, meals.image_url,
+                categories.name AS category_name, meals.created_at, meals.updated_at
                 FROM meals
                 JOIN categories ON meals.category_id = categories.id
                 WHERE meals.active = true;`
@@ -231,7 +232,7 @@ active, image_url, image_name, created_at;`
             }
             let imageUrl
             if (req.file) {
-                await storage.delete(meal.filename)
+                await storage.delete(meal.rows[0].file_name)
                 const { errUpload, data } = await storage.upload(req.file.filename, req.file.path)
                 if (errUpload) {
                     fs.unlinkSync(req.file.path)
@@ -251,7 +252,7 @@ WHERE id = $7 RETURNING id, name, price,
 JSON_BUILD_OBJECT(
 'id', category_id,
 'name', (SELECT name FROM categories WHERE id = category_id)) AS category,
-active, image_url, image_name, created_at, updated_at;`
+active, image_url, created_at, updated_at;`
                 : `UPDATE meals
 SET name = $1, price = $2, category_id = $3, active = $4, updated_at = CURRENT_TIMESTAMP
 WHERE id = $5
@@ -259,7 +260,7 @@ RETURNING id, name, price,
 JSON_BUILD_OBJECT(
 'id', category_id,
 'name', (SELECT name FROM categories WHERE id = category_id)) AS category,
-active, image_url, image_name, created_at, updated_at;`
+active, image_url, created_at, updated_at;`
             const values = req.file ? [
                 body.name,
                 body.price,
@@ -301,6 +302,7 @@ active, image_url, image_name, created_at, updated_at;`
                     next
                 )
             }
+            await storage.delete(meal.rows[0].image_name)
             const deleteQuery = `DELETE meals WHERE id = $1;`
             const values = [id]
             await pg.query(deleteQuery, values)
@@ -331,7 +333,7 @@ RETURNING id, name, price,
 JSON_BUILD_OBJECT(
 'id', category_id,
 'name', (SELECT name FROM categories WHERE id = category_id)) AS category,
-active, created_at, updated_at;`
+active, image_url, created_at, updated_at;`
             const values = [meal.active === true ? false : true, id]
             const updatedMeal = await pg.query(updateQuery, values)
             res.status(200).json({

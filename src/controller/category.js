@@ -94,7 +94,8 @@ COALESCE(JSON_AGG(
     JSON_BUILD_OBJECT(
         'id', m.id,
         'name', m.name,
-        'price', m.price
+        'price', m.price,
+        'image_url', m.image_url
     )
 ) FILTER (WHERE m.id IS NOT NULL), '[]') AS meals
 FROM categories c
