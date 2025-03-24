@@ -1,16 +1,23 @@
-import express from 'express'
-import router from './src/route/route.js'
-import { port } from './src/config/config.js'
+import http from 'http'
+import app from './app.js'
+import { host, port } from './src/config/config.js'
+import { Server } from 'socket.io'
+import ioRouter from './src/route/ioRoute.js'
 
-// Setup app.
-const app = express()
+// Setup server.
+const server = http.createServer(app)
 
-// Setup body parsing.
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-
-// Setup Router.
-app.use(router)
+// Setup socket.io.
+const io = new Server(server)
+io.use(ioRouter.global)
+io.on('connection', (socket) => {
+    console.log(`Connection`)
+    io.on(ioRouter.newOrder)
+    io.on(ioRouter.prepared)
+    io.on('disconnection', (socket) => {
+        console.log('Disconnected')
+    })
+})
 
 // Setup server port.
-app.listen(port, (err) => console.log(`Server running on port ${port}`))
+server.listen(port, host, () => console.log(`Server running on port ${port}`))
