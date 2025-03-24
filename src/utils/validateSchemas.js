@@ -88,7 +88,8 @@ export const createCategorySchema = Joi.object({
         .message('Name must be max 128 charakters!')
         .required(),
 
-    active: Joi.boolean()
+    active: Joi.number()
+        .valid(0, 1)
         .required()
 })
 
@@ -100,9 +101,34 @@ export const updateCategorySchema = Joi.object({
         .message('Name must be max 128 charakters!')
         .required(),
 
-    active: Joi.boolean()
+    active: Joi.number()
+        .valid(0, 1)
         .required()
 })
+
+export const fileSchema = Joi.object({
+    originalname: Joi.string().regex(/\.(jpg|jpeg|png|gif)$/i).required(),
+
+    mimetype: Joi.string()
+        .valid("image/jpeg", "image/png", "image/gif")
+        .required(),
+
+    size: Joi.number().max(2 * 1024 * 1024).required(),
+
+    fieldname: Joi.string()
+        .valid('image')
+        .required(),
+
+    encoding: Joi.string(),
+
+    destination: Joi.string()
+        .valid('tmp/')
+        .required(),
+
+    filename: Joi.string(),
+
+    path: Joi.string()
+});
 
 export const createMealSchema = Joi.object({
     name: Joi.string()
@@ -124,7 +150,8 @@ export const createMealSchema = Joi.object({
         .message('Category id cannot be less from 1!')
         .required(),
 
-    active: Joi.boolean()
+    active: Joi.number()
+        .valid(0, 1)
         .required()
 })
 
@@ -148,7 +175,8 @@ export const updateMealSchema = Joi.object({
         .message('Category id cannot be less from 1!')
         .required(),
 
-    active: Joi.boolean()
+    active: Joi.number()
+        .valid(0, 1)
         .required()
 })
 
