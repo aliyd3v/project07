@@ -172,7 +172,7 @@ RETURNING id, name, username, gender, role, points, created_at, updated_at;`
                 )
             }
             const updateQuery = `UPDATE users
-SET active = false, updated_at = CURRENT_TIMESTAMP
+SET active = false, shift_status = 'Fired', updated_at = CURRENT_TIMESTAMP
 WHERE id = $1;`
             const values = [id]
             await pg.query(updateQuery, values)

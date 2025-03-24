@@ -19,6 +19,9 @@ export const postgresConfig = {
     database: process.env.DB_DATABASE
 }
 
+// Serverless database URL
+export const databaseUrl = process.env.DATABASE_URL
+
 // JWT config
 export const jwtKey = process.env.JWT_KEY
 export const jwtExpiresIn = process.env.JWT_EXPIRES_IN
