@@ -85,14 +85,14 @@ const authController = {
                     next
                 )
             }
-
-            req.user = user
+            delete user.rows[0].password
+            req.user = user.rows[0]
             next()
         } catch (error) {
             next(error)
         }
     },
-    checkRoles: async (...roles) => {
+    checkRoles: (...roles) => {
         return (req, res, next) => {
             if (!roles.includes(req.user.role)) {
                 return next(
