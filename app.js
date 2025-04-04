@@ -1,18 +1,21 @@
 import express from 'express'
-import router from './src/route/route.js'
+import router from './src/route/router.js'
 import cors from 'cors'
 import globalErrorHandler from './src/controller/error.js'
+import helmet from 'helmet'
 
 // Setup app.
 const app = express()
 
-// Setup body parsing.
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use(cors())
+app
+    // Setup body parsing.
+    .use(express.json())
+    .use(express.urlencoded({ extended: true }))
+    .use(cors())
+    .use(helmet())
 
-// Setup Router.
-app.use(router)
-app.use(globalErrorHandler)
+    // Setup Router.
+    .use(router)
+    .use(globalErrorHandler)
 
 export default app

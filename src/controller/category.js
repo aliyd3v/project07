@@ -99,7 +99,7 @@ COALESCE(JSON_AGG(
     )
 ) FILTER (WHERE m.id IS NOT NULL), '[]') AS meals
 FROM categories c
-LEFT JOIN meals m ON c.id = m.category_id
+LEFT JOIN meals m ON c.id = m.category_id AND m.active = true
 WHERE c.active = true
 GROUP BY c.id, c.name
 ORDER BY c.name;`
@@ -157,9 +157,9 @@ ORDER BY c.name;`
             const updatedCategory = await pg.query(
                 `UPDATE categories
 SET name = $1, active = $2, updated_at = CURRENT_TIMESTAMP
-WHERE id = $2
-RETURNING id, name, active, created_at, updated_ad;`,
-                [body.name, body.active, id]
+WHERE id = $3
+RETURNING id, name, active, created_at, updated_at;`,
+                [body.name, body.active == 1 ? true : false, id]
             )
             res.status(201).json({
                 status: 'success',
@@ -186,7 +186,7 @@ RETURNING id, name, active, created_at, updated_ad;`,
                     next
                 )
             }
-            const updateQuery = `DELETE categories WHERE id = $1`
+            const updateQuery = `DELETE FROM categories WHERE id = $1`
             const values = [id]
             await pg.query(updateQuery, values)
             res.status(200).json({
@@ -216,7 +216,7 @@ RETURNING id, name, active, created_at, updated_ad;`,
 SET active = $1, updated_at = CURRENT_TIMESTAMP
 WHERE id = $2
 RETURNING id, name, active, created_at, updated_at;`
-            const values = [category.active === true ? false : true, id]
+            const values = [!category.rows[0].active, id]
             const updatedCategory = await pg.query(insertQuery, values)
             res.status(200).json({
                 status: 'success',
