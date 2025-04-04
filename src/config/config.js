@@ -8,7 +8,7 @@ export const port = process.env.PORT
 export const host = process.env.HOST
 
 // DOMAIN
-export const domain = process.env.DOMAIN
+export const domain = 'http://' + host + ':' + port
 
 // Postgresql config
 export const postgresConfig = {
@@ -30,6 +30,6 @@ export const jwtExpiresIn = process.env.JWT_EXPIRES_IN
 export const salt = process.env.SALT
 
 // Supabase config
-export const supabaseUrl= process.env.SUPABASE_URL
-export const supabaseKey= process.env.SUPABASE_ACCESS_KEY
-export const supabaseBucketName= process.env.SUPABASE_BUCKET_NAME
+export const supabaseUrl = process.env.SUPABASE_URL
+export const supabaseKey = process.env.SUPABASE_ACCESS_KEY
+export const supabaseBucketName = process.env.SUPABASE_BUCKET_NAME

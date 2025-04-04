@@ -113,6 +113,9 @@ active, created_at;`
             ]
             const meal = await pg.query(insertQuery, values)
             req.file ? fs.unlinkSync(req.file.path) : false
+            if (meal.rows[0].active == true) {
+                
+            }
             res.status(201).json({
                 status: 'success',
                 data: {
