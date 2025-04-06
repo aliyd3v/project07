@@ -1,9 +1,8 @@
 import http from 'http'
 import app from './app.js'
-import { host, port } from './src/config/config.js'
+import { port } from './src/config/config.js'
 import { Server } from 'socket.io'
 import registerSocketHandler from './socket/index.js'
-import { clear } from 'console'
 
 // Setup server.
 const server = http.createServer(app)
@@ -17,7 +16,7 @@ const io = new Server(server, {
 registerSocketHandler(io)
 
 // Setup server port.
-server.listen(port, host, () => console.log(`Server running on port ${port}`))
+server.listen(port, () => console.log(`Server running on port ${port}`))
 
 
 // This is function just for server! :D
