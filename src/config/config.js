@@ -1,14 +1,14 @@
 import dotenv from 'dotenv'
 dotenv.config()
 
+// Production
+export const production = process.env.PRODUCTION
+
 // PORT
 export const port = process.env.PORT
 
-// HOST
-export const host = process.env.HOST
-
 // DOMAIN
-export const domain = 'http://' + host + ':' + port
+export const domain = process.env.DOMAIN
 
 // Postgresql config
 export const postgresConfig = {
