@@ -21,7 +21,7 @@ import { databaseUrl, postgresConfig, production } from "../config/config.js"
 //     .catch(err => console.error(`DATABASE CONNECT ERROR:`, err))
 
 const pg = new postgres.Client(
-    production == true ?
+    production == 'true' ?
         {
             connectionString: databaseUrl,
             ssl: {
@@ -34,7 +34,7 @@ const pg = new postgres.Client(
         postgresConfig
 )
 pg.connect()
-    .then(() => console.log(production == true ? 'PostgreSQL (Neon) is connected' : 'PostgreSQL is connected'))
+    .then(() => console.log(production == 'true' ? 'PostgreSQL (Neon) is connected' : 'PostgreSQL is connected'))
     .catch(err => console.error(err))
 
 
