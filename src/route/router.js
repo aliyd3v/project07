@@ -16,7 +16,7 @@ const router = express.Router()
 
 // Root request.
 router
-    .get('/', (req, res) => res.status(200).json({message: `Hello, I'am Server!`}))
+    .get('/', (req, res) => res.status(200).json({ message: `Hello, I'am Server!` }))
 
 // Login.
 router
@@ -150,7 +150,11 @@ router
         tableController.createOne)
     .get(
         authController.checkToken,
-        authController.checkRoles('Admin'),
+        authController.checkRoles(
+            'Admin',
+            'Waitress',
+            'Waiter'
+        ),
         tableController.getAll)
 
 // Order route.
@@ -161,7 +165,6 @@ router
         authController.checkRoles(
             'Waiter',
             'Waitress'
-
         ),
         orderController.createOne
     )
