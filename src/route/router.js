@@ -14,6 +14,10 @@ const router = express.Router()
 //              PUBLIC ROUTE                 //
 ///////////////////////////////////////////////
 
+// Root request.
+router
+    .get('/', (req, res) => res.status(200).json({message: `Hello, I'am Server!`}))
+
 // Login.
 router
     .post('/login', authController.login)
