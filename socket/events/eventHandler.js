@@ -1,4 +1,4 @@
-import { port } from '../../src/config/config.js'
+import { domain } from '../../src/config/config.js'
 
 export default (io, socket) => {
     socket.use((event, ...args) => {
