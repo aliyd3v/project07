@@ -20,10 +20,10 @@ server.listen(port, () => console.log(`Server running on port ${port}`))
 
 
 // This is function just for server! :D
-const interval = setInterval(() => {
-    console.log('Hello I\'am interval.')
-}, 15000);
-setTimeout(() => {
-    clearInterval(interval)
-    console.log('Interval is stoped.')
-}, 1000 * 60 * 60 * 3);
+// const interval = setInterval(() => {
+//     console.log('Hello I\'am interval.')
+// }, 15000);
+// setTimeout(() => {
+//     clearInterval(interval)
+//     console.log('Interval is stoped.')
+// }, 1000 * 60 * 60 * 3);
