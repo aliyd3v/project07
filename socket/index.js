@@ -9,6 +9,7 @@ export default io => {
         adminEvent.category(io, socket)
         adminEvent.meal(io, socket)
         staffEvent.tables(io, socket)
+        staffEvent.order(io, socket)
         // eventHandler(io, socket)
     })
 }

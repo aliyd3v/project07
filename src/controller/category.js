@@ -95,6 +95,7 @@ COALESCE(JSON_AGG(
         'id', m.id,
         'name', m.name,
         'price', m.price,
+        'is_ready_product', m.is_ready_product,
         'image_url', m.image_url
     )
 ) FILTER (WHERE m.id IS NOT NULL), '[]') AS meals

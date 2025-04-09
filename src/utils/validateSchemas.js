@@ -150,6 +150,10 @@ export const createMealSchema = Joi.object({
         .message('Category id cannot be less from 1!')
         .required(),
 
+    is_ready_product: Joi.number()
+        .valid(0, 1)
+        .required(),
+
     active: Joi.number()
         .valid(0, 1)
         .required()
@@ -173,6 +177,10 @@ export const updateMealSchema = Joi.object({
         .integer()
         .min(1)
         .message('Category id cannot be less from 1!')
+        .required(),
+
+    is_ready_product: Joi.number()
+        .valid(0, 1)
         .required(),
 
     active: Joi.number()
@@ -207,15 +215,15 @@ export const createOrderSchema = Joi.object({
         .message('Table id cannot be less from 1!')
         .required(),
 
-    status: Joi.string()
-        .valid('Pending', 'Preparing', 'Prepared', 'Canceled')
-        .required(),
+    // status: Joi.string()
+    //     .valid('Pending', 'Preparing', 'Prepared', 'Canceled')
+    //     .required(),
 
-    service_staff_id: Joi.number()
-        .integer()
-        .min(1)
-        .message('Service staff id cannot be less from 1!')
-        .required(),
+    // service_staff_id: Joi.number()
+    //     .integer()
+    //     .min(1)
+    //     .message('Service staff id cannot be less from 1!')
+    //     .required(),
 
     meals: Joi.array()
         .items(orderItemsSchema)

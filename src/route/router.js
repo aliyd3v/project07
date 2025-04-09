@@ -163,20 +163,33 @@ router
     .post(
         authController.checkToken,
         authController.checkRoles(
+            'Admin',
             'Waiter',
             'Waitress'
         ),
         orderController.createOne
+    )
+    .get(
+        authController.checkToken,
+        authController.checkRoles(
+            'Admin',
+            'Chef',
+            'Cook',
+            'Waiter',
+            'Waitress'
+        ),
+        orderController.getAll
     )
 router
     .route('/order/:id')
     .get(
         authController.checkToken,
         authController.checkRoles(
-            'Waiter',
-            'Waitress',
+            'Admin',
             'Chef',
-            'Cook'
+            'Cook',
+            'Waiter',
+            'Waitress'
         ),
         orderController.getOne
     )
