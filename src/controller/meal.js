@@ -83,39 +83,38 @@ const mealController = {
                 imageUrl = data.publicUrl
             }
             const insertQuery = req.file ? `INSERT INTO meals
-(name, price, category_id, active, image_url, image_name)
-VALUES($1, $2, $3, $4, $5, $6)
+(name, price, category_id, active, image_url, image_name, is_ready_product)
+VALUES($1, $2, $3, $4, $5, $6, $7)
 RETURNING id, name, price,
 JSON_BUILD_OBJECT(
 'id', category_id, 
 'name', (SELECT name FROM categories WHERE id = category_id)) AS category,
-active, image_url, created_at;`
+active, image_url, is_ready_product, created_at;`
                 : `INSERT INTO meals
-(name, price, category_id, active)
-VALUES($1, $2, $3, $4)
+(name, price, category_id, active, is_ready_product)
+VALUES($1, $2, $3, $4, $5)
 RETURNING id, name, price,
 JSON_BUILD_OBJECT(
 'id', category_id, 
 'name', (SELECT name FROM categories WHERE id = category_id)) AS category,
-active, created_at;`
+active, is_ready_product, created_at;`
             const values = req.file ? [
                 body.name,
                 body.price,
                 body.category_id,
                 body.active == 1 ? true : false,
                 imageUrl,
-                req.file.filename
+                req.file.filename,
+                body.is_ready_product
             ] : [
                 body.name,
                 body.price,
                 body.category_id,
-                body.active == 1 ? true : false
+                body.active == 1 ? true : false,
+                body.is_ready_product
             ]
             const meal = await pg.query(insertQuery, values)
             req.file ? fs.unlinkSync(req.file.path) : false
-            if (meal.rows[0].active == true) {
-                
-            }
             res.status(201).json({
                 status: 'success',
                 data: {
@@ -131,11 +130,10 @@ active, created_at;`
         try {
             const meal = await pg.query(
                 `SELECT meals.id, meals.name, meals.price, meals.image_url,
-                categories.name AS category_name,
-                meals.created_at, meals.updated_at
-                FROM meals
-                JOIN categories ON meals.category_id = categories.id
-                WHERE meals.id = $1 AND meals.active = true;`,
+categories.name AS category_name, meals.is_ready_product, meals.created_at, meals.updated_at
+FROM meals
+JOIN categories ON meals.category_id = categories.id
+WHERE meals.id = $1 AND meals.active = true;`,
                 [id]
             )
             if (!meal.rowCount) {
@@ -160,7 +158,7 @@ active, created_at;`
         try {
             const meals = await pg.query(
                 `SELECT meals.id, meals.name, meals.price, meals.image_url,
-meals.category_id, categories.name AS category_name, meals.active, meals.created_at, meals.updated_at
+meals.category_id, categories.name AS category_name, meals.is_ready_product, meals.active, meals.created_at, meals.updated_at
 FROM meals
 JOIN categories ON meals.category_id = categories.id
 ORDER BY meals.name ASC;`
@@ -204,7 +202,7 @@ ORDER BY meals.name ASC;`
                     )
                 }
             }
-            const meal = await pg.query(`SELECT id FROM meals WHERE id = $1;`, [id])
+            const meal = await pg.query(`SELECT id, category_id FROM meals WHERE id = $1;`, [id])
             if (!meal.rowCount) {
                 req.file ? fs.unlinkSync(req.file.path) : false
                 return next(
@@ -214,7 +212,7 @@ ORDER BY meals.name ASC;`
                     next
                 )
             }
-            if (meal.category != body.category_id) {
+            if (meal.category_id != body.category_id) {
                 const category = await pg.query(
                     `SELECT id, name FROM categories WHERE id = $1;`,
                     [body.category_id]
@@ -250,20 +248,22 @@ ORDER BY meals.name ASC;`
             }
             const updateQuery = req.file ? `UPDATE meals
 SET name = $1, price = $2, category_id = $3, active = $4, 
-image_url = $5, image_name = $6, updated_at = CURRENT_TIMESTAMP
-WHERE id = $7 RETURNING id, name, price,
-JSON_BUILD_OBJECT(
-'id', category_id,
-'name', (SELECT name FROM categories WHERE id = category_id)) AS category,
-active, image_url, created_at, updated_at;`
-                : `UPDATE meals
-SET name = $1, price = $2, category_id = $3, active = $4, updated_at = CURRENT_TIMESTAMP
-WHERE id = $5
+image_url = $5, image_name = $6, is_ready_product = $7, updated_at = CURRENT_TIMESTAMP
+WHERE id = $8
 RETURNING id, name, price,
 JSON_BUILD_OBJECT(
 'id', category_id,
 'name', (SELECT name FROM categories WHERE id = category_id)) AS category,
-active, image_url, created_at, updated_at;`
+active, image_url, is_ready_product, created_at, updated_at;`
+                :
+                `UPDATE meals
+SET name = $1, price = $2, category_id = $3, active = $4, is_ready_product = $5,
+updated_at = CURRENT_TIMESTAMP WHERE id = $6
+RETURNING id, name, price,
+JSON_BUILD_OBJECT(
+'id', category_id,
+'name', (SELECT name FROM categories WHERE id = category_id)) AS category,
+active, image_url, is_ready_product, created_at, updated_at;`
             const values = req.file ? [
                 body.name,
                 body.price,
@@ -271,12 +271,14 @@ active, image_url, created_at, updated_at;`
                 body.active == 1 ? true : false,
                 imageUrl,
                 req.file.filename,
+                body.is_ready_product,
                 id
             ] : [
                 body.name,
                 body.price,
                 body.category_id,
                 body.active == 1 ? true : false,
+                body.is_ready_product,
                 id
             ]
             const updatedMeal = await pg.query(updateQuery, values)
@@ -337,7 +339,7 @@ RETURNING id, name, price,
 JSON_BUILD_OBJECT(
 'id', category_id,
 'name', (SELECT name FROM categories WHERE id = category_id)) AS category,
-active, image_url, created_at, updated_at;`
+active, image_url, is_ready_product, created_at, updated_at;`
             const values = [!meal.rows[0].active, id]
             const updatedMeal = await pg.query(updateQuery, values)
             res.status(200).json({

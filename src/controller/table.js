@@ -49,7 +49,7 @@ RETURNING id, number, active, created_at;`
     getAll: async (req, res, next) => {
         try {
             const selectQuery = `SELECT id, number, active, created_at, updated_at
-FROM tables;`
+FROM tables ORDER BY number;`
             const tables = await pg.query(selectQuery)
             res.status(200).json({
                 status: 'success',
