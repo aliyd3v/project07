@@ -6,6 +6,7 @@ import authController from '../controller/auth.js'
 import AppError from '../utils/appError.js'
 import tableController from "../controller/table.js"
 import orderController from "../controller/order.js"
+import orderItemController from "../controller/orderItem.js"
 import upload from "../helper/multer.js"
 
 const router = express.Router()
@@ -192,6 +193,41 @@ router
             'Waitress'
         ),
         orderController.getOne
+    )
+    .delete(
+        authController.checkToken,
+        authController.checkRoles(
+            'Admin',
+            'Chef',
+            'Cook',
+            'Waiter',
+            'Waitress'
+        ),
+        orderController.deleteOne
+    )
+
+// Order-item route.
+router
+    .route('/order-item/:id/prepared')
+    .put(
+        authController.checkToken,
+        authController.checkRoles(
+            'Admin',
+            'Chef',
+            'Cook',
+        ),
+        orderItemController.changeToPrepared
+    )
+router
+    .route('/order-item/:id/delivered')
+    .put(
+        authController.checkToken,
+        authController.checkRoles(
+            'Admin',
+            'Chef',
+            'Cook',
+        ),
+        orderItemController.changeToDelivered
     )
 
 // Handle not found route.

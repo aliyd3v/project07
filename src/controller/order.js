@@ -16,7 +16,7 @@ const orderController = {
                 )
             }
             const table = await pg.query(
-                `SELECT id, number FROM tables WHERE $1 AND active = true;`,
+                `SELECT id, number FROM tables WHERE id = $1 AND active = true;`,
                 [body.table_id]
             )
             if (!table.rowCount) {
@@ -27,7 +27,6 @@ const orderController = {
                     next
                 )
             }
-
             await body.meals.forEach(async el => {
                 const meal = await pg.query(
                     `SELECT id, name, price FROM meals
@@ -43,11 +42,10 @@ const orderController = {
                     )
                 }
             })
-
             const insertQuery = `INSERT INTO orders (table_id, service_staff_id)
-            VALUES ($1, $2) RETURNING id, table_id, service_staff_id, created_at;`
+VALUES ($1, $2) RETURNING id;`
             const values = [body.table_id, user.id]
-            const order = await pg.query(insertQuery, values)
+            const newOrder = await pg.query(insertQuery, values)
 
             await body.meals.forEach(async el => {
                 const meal = await pg.query(
@@ -58,16 +56,15 @@ const orderController = {
                     `INSERT INTO order_items(order_id, meal_id, quantity, status)
 VALUES($1, $2, $3, $4);`,
                     [
-                        order.rows[0].id,
+                        newOrder.rows[0].id,
                         el.mealId,
                         el.quantity,
-                        meal.is_ready_product ? 'Prepared' : 'Pending'
+                        'Pending'
                     ]
                 )
             })
-
-            const selectQuery = `SELECT 
-o.id AS order_id,
+            const order = await pg.query(
+                `SELECT o.id AS id,
 json_build_object(
     'id', t.id,
     'number', t.number
@@ -78,44 +75,44 @@ json_build_object(
     'username', u.username,
     'role', u.role,
     'gender', u.gender
-) AS service_staff,
-COALESCE(
-    json_agg(
-        json_build_object(
-            'id', oi.id,
-            'quantity', oi.quantity,
-            'meal', json_build_object(
-                'id', m.id,
-                'name', m.name,
-                'price', m.price,
-                'is_ready_product', m.is_ready_product,
-                'category', json_build_object(
-                    'id', c.id,
-                    'name', c.name
-                )
-            )
-        )
-    ) FILTER (WHERE oi.id IS NOT NULL), '[]'
-) AS order_items
+) AS service_staff, o.created_at AS created_at
 FROM orders o
 LEFT JOIN tables t ON o.table_id = t.id
 LEFT JOIN users u ON o.service_staff_id = u.id
-LEFT JOIN order_items oi ON oi.order_id = o.id
+WHERE o.id = $1;`,
+                [newOrder.rows[0].id]
+            )
+            const orderItems = await pg.query(
+                `SELECT oi.id AS id,
+oi.quantity AS quantity,
+oi.status AS status,
+json_build_object(
+    'id', m.id,
+    'name', m.name,
+    'price', m.price,
+    'image_url', m.image_url,
+    'is_ready_product', m.is_ready_product,
+    'active', m.active,
+    'category', json_build_object(
+        'id', c.id,
+        'name', c.name,
+        'active', c.active
+    )
+) AS meal
+FROM order_items oi
 LEFT JOIN meals m ON oi.meal_id = m.id
 LEFT JOIN categories c ON m.category_id = c.id
-WHERE o.id = $1
-GROUP BY o.id, t.id, t.number, u.id, u.name, u.username, u.role, u.gender;`
-            const selectValues = [order.rows[0].id]
-            const fullOrder = await pg.query(selectQuery, selectValues)
-
+WHERE oi.order_id = $1;`,
+                [order.rows[0].id]
+            )
             res.status(201).json({
                 status: 'success',
                 data: {
-                    order: fullOrder.rows[0]
+                    order: order.rows[0],
+                    order_items: orderItems.rows
                 }
             })
         } catch (error) {
-            console.log(error)
             next(error)
         }
     },
@@ -217,7 +214,8 @@ COALESCE(
                     'id', c.id,
                     'name', c.name
                 )
-            )
+            ),
+            'status', oi.status
         )
     ) FILTER (WHERE oi.id IS NOT NULL), '[]'
 ) AS order_items,
@@ -239,6 +237,34 @@ ORDER BY o.created_at;`
                 }
             })
         } catch (error) {
+            next(error)
+        }
+    },
+    deleteOne: async (req, res, next) => {
+        const { params: { id } } = req
+        try {
+            const order = await pg.query(
+                `SELECT id FROM orders WHERE id = $1`,
+                [id]
+            )
+            if (!order.rowCount) {
+                return next(
+                    new AppError(404, 'fail', `No document found with that order id.`),
+                    req,
+                    res,
+                    next
+                )
+            }
+            await pg.query(
+                `DELETE FROM orders WHERE id = $1`,
+                [id]
+            )
+            res.status(200).json({
+                status: 'success',
+                data: null
+            })
+        } catch (error) {
+            console.log(error)
             next(error)
         }
     }

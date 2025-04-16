@@ -5,7 +5,7 @@ CREATE TYPE gender_type AS ENUM ('Male', 'Female');
 CREATE TYPE role_type AS ENUM ('Waiter', 'Waitress', 'Chef', 'Cook', 'Admin');
 
 -- CREATE TYPE order_status_type.
-CREATE TYPE order_status_type AS ENUM ('Pending', 'Completed', 'Payed', 'Canceled');
+CREATE TYPE order_status_type AS ENUM ('Pending', 'Prepared', 'Delivered', 'Payed', 'Canceled');
 
 -- CREATE TYPE order_item_status_type.
 CREATE TYPE order_item_status_type AS ENUM ('Pending', 'Prepared', 'Delivered', 'Canceled');
@@ -19,7 +19,7 @@ password VARCHAR(255) NOT NULL,
 active BOOLEAN DEFAULT true,
 gender gender_type NOT NULL,
 role role_type NOT NULL,
-points INT DEFAULT NULL,
+-- points INT DEFAULT NULL,
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
