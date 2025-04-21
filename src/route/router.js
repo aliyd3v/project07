@@ -63,6 +63,19 @@ router
         authController.checkRoles('Admin'),
         userController.deleteOne
     )
+router
+    .route('/check-token')
+    .get(
+        authController.checkToken,
+        authController.checkRoles(
+            'Admin',
+            'Chef',
+            'Cook',
+            'Waiter',
+            'Waitress'
+        ),
+        userController.checkUser
+    )
 
 //Category route.
 router

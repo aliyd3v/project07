@@ -183,6 +183,18 @@ WHERE id = $1;`
         } catch (error) {
             next(error)
         }
+    },
+    checkUser: async (req, res, next) => {
+        try {
+            res.status(200).json({
+                status: 'success',
+                user: {
+                    role: req.user.role
+                }
+            })
+        } catch (error) {
+            next(error)
+        }
     }
 }
 
