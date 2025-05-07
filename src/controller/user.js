@@ -78,7 +78,7 @@ RETURNING id, name, username, gender, role, points, created_at;`
             next(error)
         }
     },
-    getAll: async (req, res) => {
+    getAll: async (req, res, next) => {
         try {
             const selectQuery = `SELECT
             id, name, username, gender, role, points, created_at, updated_at
@@ -116,38 +116,31 @@ RETURNING id, name, username, gender, role, points, created_at;`
                     next
                 )
             }
-            const condidat = await pg.query(
-                'SELECT id, username FROM users WHERE username = $1',
-                [body.username]
-            )
-            if (condidat.rows[0].id != id) {
-                return next(
-                    new AppError(
-                        400,
-                        'fail',
-                        `The chosen username '${body.username}' is already taken. Please try a different one.`
-                    ),
-                    req,
-                    res,
-                    next
+            if (user.rows[0].username != body.username) {
+                const condidat = await pg.query(
+                    'SELECT id, username FROM users WHERE username = $1',
+                    [body.username]
                 )
+                if (condidat.rowCount) {
+                    return next(
+                        new AppError(
+                            400,
+                            'fail',
+                            `The chosen username '${body.username}' is already taken. Please try a different one.`
+                        ),
+                        req,
+                        res,
+                        next
+                    )
+                }
             }
-            let updateQuery
-            let updateValues
-            if (user.username != body.username) {
-                updateQuery = `UPDATE users
+            const updatedUser = await pg.query(
+                `UPDATE users
 SET name = $1, username = $2, gender = $3, role = $4, updated_at = CURRENT_TIMESTAMP
 WHERE id = $5 AND active = true
-RETURNING id, name, username, gender, role, points, created_at, updated_at;`
-                updateValues = [body.name, body.username, body.gender, body.role, id]
-            } else {
-                updateQuery = `UPDATE users
-SET name = $1, gender = $2, role = $3, updated_at = CURRENT_TIMESTAMP
-WHERE id = $5 AND active = true
-RETURNING id, name, username, gender, role, points, created_at, updated_at;`
-                updateValues = [body.name, body.gender, body.role, id]
-            }
-            const updatedUser = await pg.query(updateQuery, updateValues)
+RETURNING id, name, username, gender, role, points, created_at, updated_at;`,
+                [body.name, body.username, body.gender, body.role, id]
+            )
             res.status(200).json({
                 status: 'success',
                 data: {
@@ -171,12 +164,8 @@ RETURNING id, name, username, gender, role, points, created_at, updated_at;`
                     next
                 )
             }
-            const updateQuery = `UPDATE users
-SET active = false, shift_status = 'Fired', updated_at = CURRENT_TIMESTAMP
-WHERE id = $1;`
-            const values = [id]
-            await pg.query(updateQuery, values)
-            res.status(204).json({
+            await pg.query(`DELETE FROM users WHERE id = $1;`, [id])
+            res.status(200).json({
                 status: 'success',
                 data: null
             })

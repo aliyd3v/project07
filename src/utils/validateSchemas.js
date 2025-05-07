@@ -196,6 +196,14 @@ export const createTableSchema = Joi.object({
         .required()
 })
 
+export const updateTableSchema = Joi.object({
+    number: Joi.number()
+        .integer()
+        .min(1)
+        .message('Table number cannot be less from 1!')
+        .required()
+})
+
 const orderItemsSchema = Joi.object({
     mealId: Joi.number()
         .integer()

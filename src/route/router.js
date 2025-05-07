@@ -170,6 +170,23 @@ router
             'Waiter'
         ),
         tableController.getAll)
+router
+    .route('/table/:id')
+    .get(
+        authController.checkToken,
+        authController.checkRoles('Admin'),
+        tableController.getOne
+    )
+    .put(
+        authController.checkToken,
+        authController.checkRoles('Admin'),
+        tableController.updateOne
+    )
+    .delete(
+        authController.checkToken,
+        authController.checkRoles('Admin'),
+        tableController.deleteOne
+    )
 
 // Order route.
 router
