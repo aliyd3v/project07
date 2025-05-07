@@ -168,7 +168,7 @@ RETURNING id, number, active, created_at, updated_at;`,
                     next
                 )
             }
-            await pg.query(`DELETE FROM tables WHERE id = $2;`, [body.number, id])
+            await pg.query(`DELETE FROM tables WHERE id = $1;`, [id])
             res.status(200).json({
                 status: 'success',
                 data: null
