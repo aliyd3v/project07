@@ -129,7 +129,7 @@ FROM tables ORDER BY number;`
                     )
                 }
                 const updatedTable = await pg.query(
-                    `UPDATE users
+                    `UPDATE tables
 SET number = $1, updated_at = CURRENT_TIMESTAMP
 WHERE id = $2
 RETURNING id, number, active, created_at, updated_at;`,
@@ -168,7 +168,7 @@ RETURNING id, number, active, created_at, updated_at;`,
                     next
                 )
             }
-            await pg.query(`DELETE FROM users WHERE id = $2;`, [body.number, id])
+            await pg.query(`DELETE FROM tables WHERE id = $2;`, [body.number, id])
             res.status(200).json({
                 status: 'success',
                 data: null
